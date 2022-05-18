@@ -1,8 +1,14 @@
 package dds.monedero.model;
 
+import java.time.LocalDate;
+
 public class Deposito extends Movimiento {
-  public double calcularValor(Cuenta cuenta) {
-      return cuenta.getSaldo() + getMonto();
-      // return cuenta.montoIncrementado(getMonto());
+
+  public Deposito(LocalDate fecha, double monto) {
+    super(fecha, monto);
+  }
+
+  public double calcularNuevoSaldo (double monto, double saldo) {
+      return saldo + monto;
   }
 }

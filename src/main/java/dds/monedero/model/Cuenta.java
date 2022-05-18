@@ -11,8 +11,9 @@ import java.util.List;
 
 public class Cuenta {
 
-  private double saldo = 0;
-  private List<Movimiento> movimientos = new ArrayList<>();
+  private double saldo;
+  private List<Deposito> depositos = new ArrayList<>();
+  private List<Extraccion> extracciones = new ArrayList<>();
   int maximoDepositos = 3;
   double limiteExtraccionDiario = 1000;
 
@@ -24,15 +25,26 @@ public class Cuenta {
     saldo = montoInicial;
   }
 
-  public void setMovimientos(List<Movimiento> movimientos) {
-    this.movimientos = movimientos;
+  public void setDepositos(List<Deposito> depositos) {
+    this.depositos = depositos;
+  }
+  public void setExtracciones(List<Extraccion> extracciones) {
+    this.extracciones = extracciones;
   }
 
+  // no nos gusta que depositar y extraer tengan la misma lógica, pero tampoco queremos delegarlo a las respectivas clases
+  // porque usan atributos de la clase Cuenta.
   public void depositar(double monto) {
     validarDeposito(monto);
     new Movimiento(LocalDate.now(), monto, true).agregateA(this);
   }
 
+  public void extraer(double monto) {
+    validarExtraccion(monto);
+    Extraccion extraccion = new Extraccion(LocalDate.now(), monto);
+    extracciones.add(extraccion);
+    saldo = extraccion.calcularNuevoSaldo(monto, saldo); // idem deposito
+  }
 
   private void validarNegativo(double monto) {
     if (monto <= 0) {
@@ -43,34 +55,13 @@ public class Cuenta {
 
   private void validarDeposito(double monto) {
     validarNegativo(monto);
-
-    if (getMovimientos().stream().filter(movimiento -> movimiento.isDeposito()).count() >= maximoDepositos) {
-      throw new MaximaCantidadDepositosException("Ya excedio los " + maximoDepositos + " depositos diarios");
-    }
+    validarMaximoDepositos();
   }
 
   private void validarExtraccion(double monto) {
     validarNegativo(monto);
-
-    if (getSaldo() - monto < 0) {
-      throw new SaldoMenorException("No puede sacar mas de " + getSaldo() + " $");
-    }
-    double montoExtraidoHoy = getMontoExtraidoA(LocalDate.now());
-    double limite = 1000 - montoExtraidoHoy;
-    if (monto > limite) {
-      throw new MaximoExtraccionDiarioException("No puede extraer mas de $ " + limiteExtraccionDiario
-          + " diarios, límite: " + limite);
-    }
-  }
-
-  public void extraer(double monto) {
-    validarExtraccion(monto);
-    new Movimiento(LocalDate.now(), monto, false).agregateA(this);
-  }
-
-  public void agregarMovimiento(LocalDate fecha, double cuanto, boolean esDeposito) {
-    Movimiento movimiento = new Movimiento(fecha, cuanto, esDeposito);
-    movimientos.add(movimiento);
+    validarSaldo(monto);
+    validarMaximoExtraccionDiaria(monto);
   }
 
   public double getMontoExtraidoA(LocalDate fecha) {
@@ -91,5 +82,4 @@ public class Cuenta {
   public void setSaldo(double saldo) {
     this.saldo = saldo;
   }
-
 }
