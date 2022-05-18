@@ -36,7 +36,9 @@ public class Cuenta {
   // porque usan atributos de la clase Cuenta.
   public void depositar(double monto) {
     validarDeposito(monto);
-    new Movimiento(LocalDate.now(), monto, true).agregateA(this);
+    Deposito deposito = new Deposito(LocalDate.now(), monto);
+    depositos.add(deposito);
+    saldo = deposito.calcularNuevoSaldo(monto, saldo); // podriamos haber hecho la suma aca y eliminar las clases deposito y extraccion pero lo dejamos asi porque no quisimos cambiar tanto
   }
 
   public void extraer(double monto) {
