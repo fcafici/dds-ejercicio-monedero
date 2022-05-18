@@ -52,6 +52,25 @@ public class Cuenta {
     }
   }
 
+  private void validarMaximoDepositos(){
+    if (depositos.size() >= maximoDepositos) {
+      throw new MaximaCantidadDepositosException("Ya excedio los " + maximoDepositos + " depositos diarios");
+    }
+  }
+
+  private void validarSaldo(double monto) {
+    if (getSaldo() - monto < 0) {
+      throw new SaldoMenorException("No puede sacar mas de $" + getSaldo());
+    }
+  }
+
+  private void validarMaximoExtraccionDiaria(double monto){
+    double extraccionDiariaRestante = limiteExtraccionDiario - getMontoExtraidoA(LocalDate.now());
+    if (monto > extraccionDiariaRestante) {
+      throw new MaximoExtraccionDiarioException("No puede extraer mas de $" + limiteExtraccionDiario
+          + " diarios, te quedan: $" + extraccionDiariaRestante);
+    }
+  }
 
   private void validarDeposito(double monto) {
     validarNegativo(monto);
@@ -65,14 +84,18 @@ public class Cuenta {
   }
 
   public double getMontoExtraidoA(LocalDate fecha) {
-    return getMovimientos().stream()
-        .filter(movimiento -> !movimiento.isDeposito() && movimiento.getFecha().equals(fecha))
-        .mapToDouble(Movimiento::getMonto)
+    return extracciones.stream()
+        .filter(extracciones -> extracciones.esDeLaFecha(fecha))
+        .mapToDouble(Extraccion::getMonto)
         .sum();
   }
 
-  public List<Movimiento> getMovimientos() {
-    return movimientos;
+  public List<Deposito> getDepositos() {
+    return depositos;
+  }
+
+  public List<Extraccion> getExtracciones() {
+    return extracciones;
   }
 
   public double getSaldo() {
