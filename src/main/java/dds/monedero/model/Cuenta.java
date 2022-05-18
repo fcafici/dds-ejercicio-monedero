@@ -13,6 +13,8 @@ public class Cuenta {
 
   private double saldo = 0;
   private List<Movimiento> movimientos = new ArrayList<>();
+  int maximoDepositos = 3;
+  double limiteExtraccionDiario = 1000;
 
   public Cuenta() {
     saldo = 0;
